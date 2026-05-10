@@ -8,9 +8,9 @@ rm -f /fakemurk_startup_log
 rm -r /fakemurk_startup_err
 rm -f /fakemurk-log
 
-touch /startup_log
-chmod 775 /startup_log
-exec 3>&1 1>>/startup_log 2>&1
+touch /usr/local/fishmod/var/startup_log
+chmod 775 /usr/local/fishmod/var/startup_log
+exec 3>&1 1>> /usr/local/fishmod/var/startup_log 2>&1
 
 # R125 FIX: Lock VT switching during critical operations
 touch /run/murkmod-critical-startup
@@ -85,33 +85,6 @@ get_booted_kernnum() {
    fi
 }
 
-# funny boot messages
-# multi-liners
-cat <<EOF >/usr/share/chromeos-assets/text/boot_messages/en/block_devmode_virtual.txt
-Oh fuck - ChromeOS is trying to kill itself.
-ChromeOS detected developer mode and is trying to disable it to
-comply with crossystem/vpd. This is most likely a bug and should be reported to
-the murkmod GitHub Issues page.
-EOF
-cat <<EOF >/usr/share/chromeos-assets/text/boot_messages/en/self_repair.txt
-oops UwU i did a little fucky wucky and your system is trying to
-repair itself~ sorry OwO
-EOF
-# auto repair message
-cat <<EOF >/usr/share/chromeos-assets/text/boot_messages/en/anti_block_devmode_virtual.txt
-murkmod Auto-Repair
-ChromeOS has tried to disable developer mode.
-murkmod is trying to repair your system.
-Your system will boot in a few seconds...
-EOF
-
-# single-liners
-echo "i sure hope you did that on purpose (powerwashing system)" >/usr/share/chromeos-assets/text/boot_messages/en/power_wash.txt
-
-
-crossystem.old block_devmode=0 # prevent chromeos from comitting suicide
-vpd -i RW_VPD -s block_devmode=0 # same with vpd
-
 # we stage sshd and mkfs as a one time operation in startup instead of in the bootstrap script
 # this is because ssh-keygen was introduced somewhere around R80, where many shims are still stuck on R73
 # filesystem unfuck can only be done before stateful is mounted, which is perfectly fine in a shim but not if you run it while booted
@@ -141,15 +114,6 @@ EOF
     echo "Staged sshd."
 fi
 
-if [ -f /population_required ]; then
-    echo "Populating crossystem..."
-    /sbin/crossystem_boot_populator.sh
-    echo "Done. Setting check_enrollment..."
-    vpd -i RW_VPD -s check_enrollment=1
-    echo "Removing flag..."
-    rm -f /population_required
-fi
-
 echo "Launching sshd..."
 /usr/sbin/sshd -f /ssh/config &
 
@@ -158,10 +122,10 @@ if [ -f /logkeys/active ]; then
     /usr/bin/logkeys -s -m /logkeys/keymap.map -o /mnt/stateful_partition/keylog
 fi
 
-if [ ! -f /stateful_unfucked ]; then
+if [ ! -f /usr/local/fishmod/var/.stateful_unfucked ]; then
     echo "Unfucking stateful..."
     yes | mkfs.ext4 "${DST}p1"
-    touch /stateful_unfucked
+    touch /usr/local/fishmod/var/.stateful_unfucked
     echo "Done, rebooting..."
     reboot
 else
@@ -194,29 +158,6 @@ else
         fi
     done
 
-    POLLEN_SRC="/mnt/stateful_partition/murkmod/pollen/policy.json"
-    POLLEN_DST_RO="/tmp/overlay/etc/opt/chrome/policies/managed/policy.json"
-    POLLEN_DST_RW="/etc/opt/chrome/policies/managed/policy.json"
-    if [ -f "$POLLEN_SRC" ]; then
-        if touch /etc/opt/chrome/policies/managed/.murkmod_test 2>/dev/null; then
-            rm -f /etc/opt/chrome/policies/managed/.murkmod_test
-            mkdir -p "$(dirname "$POLLEN_DST_RW")"
-            cp "$POLLEN_SRC" "$POLLEN_DST_RW"
-            echo "Copied pollen policy to $POLLEN_DST_RW"
-        else
-            mkdir -p "$(dirname "$POLLEN_DST_RO")"
-            mount --bind /etc/opt /tmp/overlay/etc/opt
-            cp "$POLLEN_SRC" "$POLLEN_DST_RO"
-            echo "Overlaid pollen policy to $POLLEN_DST_RO"
-        fi
-    fi
-    if touch /root/testingForVerity; then
-	echo "verity disabled"
-	rm -rf /root/testingForVerity
-	sed -i 's/stable-channel/testimage-channel/' /etc/lsb-release
-	sed -i 's/--disable-policy-key-verification//' /etc/chrome_dev.conf
-	echo "--disable-policy-key-verification" >>/etc/chrome_dev.conf
-    fi
     /usr/share/vboot/bin/make_dev_ssd.sh -f --remove_rootfs_verification --partitions 2
     /usr/share/vboot/bin/make_dev_ssd.sh -f --remove_rootfs_verification --partitions 4 
     
@@ -235,7 +176,7 @@ else
     rm -f /run/murkmod-critical-startup
     
     # R125 FIX: Signal that startup is complete and VT2 is safe
-    touch /var/run/murkmod-startup-complete
+    touch /usr/local/fishmod/var/run/murkmod-startup-complete
     chmod 644 /var/run/murkmod-startup-complete
     
     echo "Plugins run. VT2 now safe to use. Handing over to real startup..."

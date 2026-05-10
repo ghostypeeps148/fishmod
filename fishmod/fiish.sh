@@ -5,7 +5,7 @@ wait_for_safe_startup() {
     local timeout=60
     local elapsed=0
     
-    while [ ! -f /var/run/murkmod-startup-complete ] && [ $elapsed -lt $timeout ]; do
+    while [ ! -f /fsh/var/flags/.murkmod-startup-complete ] && [ $elapsed -lt $timeout ]; do
         if [ $elapsed -eq 0 ]; then
             echo "System still starting up, please wait..."
         fi
@@ -20,7 +20,7 @@ wait_for_safe_startup() {
     fi
     
     # Check if we're in critical startup (stateful mounting)
-    if [ -f /run/murkmod-critical-startup ]; then
+    if [ -f /fsh/var/flags/.murkmod-critical-startup ]; then
         echo "⚠️  WARNING: Critical system operation in progress"
         echo "⚠️  Please close this terminal and try again in a moment"
         sleep 10
@@ -51,11 +51,11 @@ check_r125_compatibility() {
 	║  If you experience crashes:                                   ║
 	║  • SSH into the device: ssh -p 1337 root@127.0.0.1           ║
 	║  • Run diagnostic: /usr/local/bin/murkmod-diagnose            ║
-	║                                                                ║
+	║  FISHMOD attempts to fix any issues, but they still may occur!  ║
 	╚════════════════════════════════════════════════════════════════╝
 	
 EOF
-            touch /var/murkmod_r125_warning_shown
+            touch /fsh/var/flags/.murkmod_r125_warning_shown
             sleep 3
         fi
     fi
@@ -94,19 +94,16 @@ traps() {
 
 mush_info() {
     echo -ne "\033]0;mush\007"
-    if [ ! -f /mnt/stateful_partition/custom_greeting ]; then
+    if [ ! -f /fsh/cfg/custom_greeting.txt ]; then
         cat <<-EOF
-Welcome to mush, the murkmod developer shell.
+Welcome to fiish, the fiishmod developer shell.
 
 If you got here by mistake, don't panic! Just close this tab and carry on.
 
-This shell contains a list of utilities for performing various actions on a murkmodded chromebook.
-
-murkmod is now maintained completely independently from fakemurk. Don't report any bugs you encounter with it to the fakemurk developers.
-
+This shell contains a list of utilities for performing various actions.
 EOF
     else
-        cat /mnt/stateful_partition/custom_greeting
+        cat /fsh/cfg/custom_greeting.txt
     fi
 }
 
@@ -139,35 +136,7 @@ edit() {
     fi
 }
 
-locked_main() {
-    traps
-    mush_info
-    while true; do
-        echo -ne "\033]0;mush\007"
-        cat <<-EOF
-(1) Emergency Revert & Re-Enroll
-(2) Soft Disable Extensions
-(3) Hard Disable Extensions
-(4) Hard Enable Extensions
-(5) Enter Admin Mode (Password-Protected)
-(6) Check for updates
-EOF
-        
-        swallow_stdin
-        read -r -p "> (1-5): " choice
-        case "$choice" in
-        1) runjob revert ;;
-        2) runjob softdisableext ;;
-        3) runjob harddisableext ;;
-        4) runjob hardenableext ;;
-        5) runjob prompt_passwd ;;
-        6) runjob do_updates && exit 0 ;;
 
-
-        *) echo && echo "Invalid option, dipshit." && echo ;;
-        esac
-    done
-}
 
 main() {
     traps
@@ -175,43 +144,32 @@ main() {
     while true; do
         echo -ne "\033]0;mush\007"
         cat <<-EOF
-(1) Root Shell
-(2) Chronos Shell
-(3) Crosh
-(4) Plugins
-(5) Install plugins
-(6) Uninstall plugins
-(7) Powerwash
-(8) Emergency Revert & Re-Enroll
-(9) Soft Disable Extensions
-(10) Hard Disable Extensions
-(11) Hard Enable Extensions
-(12) Automagically Disable Extensions
-(13) Edit Pollen
-(14) Install Crouton
-(15) Start Crouton
-(16) Enable dev_boot_usb
-(17) Disable dev_boot_usb
-(18) Set mush password
-(19) Remove mush password
-(20) [EXPERIMENTAL] Update ChromeOS
-(21) [EXPERIMENTAL] Update Emergency Backup
-(22) [EXPERIMENTAL] Restore Emergency Backup Backup
-(23) [EXPERIMENTAL] Install Chromebrew
-(24) [EXPERIMENTAL] Install Gentoo Boostrap (dev_install)
-(25) Check for updates
-(26) Run R125 Diagnostic
+(.1) Root Shell
+(.2) Chronos Shell
+(.3) Update ChromeOS
+(.4) Run Diagnostics
+(.5) Fishmod Plugins
+(.6) Install Plugins
+(.7) Uninstall Plugins
+(.8) Crosh
+Or just do a regular bash command.
 EOF
         
         swallow_stdin
-        read -r -p "> (1-26): " choice
+        read -r -p "> Do: " choice
         case "$choice" in
-        1) runjob doas bash ;;
-        2) runjob doas "cd /home/chronos; sudo -i -u chronos" ;;
-        3) runjob /usr/bin/crosh.old ;;
-        4) runjob show_plugins ;;
-        5) runjob install_plugins ;;
-        6) runjob uninstall_plugins ;;
+        .1) runjob doas bash ;;
+        .2) runjob doas "cd /home/chronos; sudo -i -u chronos" ;;
+        .3) runjob attempt_chromeos_update ;;
+        .4) runjob run_r125_diagnostic ;;
+        .5) runjob show_plugins ;;
+        .6) runjob install_plugins ;;
+        .7) runjob uninstall_plugins ;;
+        .8) runjob /fsh/bin/crosh.old ;;
+
+
+        # probably do not function
+        
         7) runjob powerwash ;;
         8) runjob revert ;;
         9) runjob softdisableext ;;
@@ -223,15 +181,10 @@ EOF
         15) runjob run_crouton ;;
         16) runjob enable_dev_boot_usb ;;
         17) runjob disable_dev_boot_usb ;;
-        18) runjob set_passwd ;;
-        19) runjob remove_passwd ;;
-        20) runjob attempt_chromeos_update ;;
         21) runjob attempt_backup_update ;;
         22) runjob attempt_restore_backup_backup ;;
-        23) runjob attempt_chromebrew_install ;;
         24) runjob attempt_dev_install ;;
         25) runjob do_updates && exit 0 ;;
-        26) runjob run_r125_diagnostic ;;
         101) runjob hard_disable_nokill ;;
         111) runjob hard_enable_nokill ;;
         112) runjob ext_purge ;;
@@ -247,23 +200,23 @@ EOF
         207) runjob api_rm_dir ;;
         208) runjob api_ls_dir ;;
         209) runjob api_cd ;;
-    
-        *) echo && echo "Invalid option, dipshit." && echo ;;
+
+        *) runjob doas "$choice";;
         esac
     done
 }
 
 # R125 FIX: Diagnostic function
 run_r125_diagnostic() {
-    if [ -x /usr/local/bin/murkmod-diagnose ]; then
-        doas /usr/local/bin/murkmod-diagnose
+    if [ -x /fsh/bin/murkmod-diagnose ]; then
+        doas /fsh/bin/murkmod-diagnose
     else
         echo "Diagnostic script not found. This may not be an R125+ installation."
         echo "Running basic diagnostics..."
         echo ""
         echo "ChromeOS Version: $(grep CHROMEOS_RELEASE_CHROME_MILESTONE /etc/lsb-release | cut -d= -f2)"
-        echo "Startup Complete: $([ -f /var/run/murkmod-startup-complete ] && echo 'YES' || echo 'NO')"
-        echo "Critical Startup: $([ -f /run/murkmod-critical-startup ] && echo 'YES (UNSAFE)' || echo 'NO')"
+        echo "Startup Complete: $([ -f /fsh/var/flags/.murkmod-startup-complete ] && echo 'YES' || echo 'NO')"
+        echo "Critical Startup: $([ -f /fsh/var/flags/.murkmod-critical-startup ] && echo 'YES (UNSAFE)' || echo 'NO')"
         echo ""
         echo "VT Permissions:"
         ls -la /dev/tty[0-9]* 2>/dev/null || echo "Cannot read VT devices"
@@ -354,11 +307,11 @@ uninstall_plugin_legacy() {
   local raw_url="https://raw.githubusercontent.com/rainestorme/murkmod/main/plugins"
   echo "Enter the name of a plugin (including the .sh) to uninstall it (or q to quit):"
   read -r plugin_name
-  doas "rm -rf /mnt/stateful_partition/murkmod/plugins/$plugin_name"
+  doas "rm -rf /fsh/plugins/$plugin_name"
 }
 
 list_plugins() {
-    plugins_dir="/mnt/stateful_partition/murkmod/plugins"
+    plugins_dir="/fsh/plugins"
     plugin_files=()
 
     while IFS= read -r -d '' file; do
@@ -458,17 +411,7 @@ autodisableexts() {
     echo "Done."
 }
 
-set_passwd() {
-  echo "(DO NOT USE, CURRENTLY BROKEN. to unbrick open vt2 and delete /mnt/stateful_partition/murkmod/mush_password) Enter a new password to use for mush. This will be required to perform any future administrative actions, so make sure you write it down somewhere!"
-  read -r -p " > " newpassword
-  sudo touch /mnt/stateful_partition/murkmod/mush_password
-  sudo echo '$newpassword'> /mnt/stateful_partition/murkmod/mush_password
-}
 
-remove_passwd() {
-  echo "Removing password from mush..."
-  doas "rm -f /mnt/stateful_partition/murkmod/mush_password"
-}
 
 prompt_passwd() {
   echo "Enter your password:"
@@ -1045,10 +988,7 @@ attempt_restore_backup_backup() {
     fi
 }
 
-attempt_chromebrew_install() {
-    doas 'sudo -i -u chronos curl -Ls git.io/vddgY | bash'
-    read -p 'Press enter to exit'
-}
+
 
 attempt_dev_install() {
     doas 'dev_install'

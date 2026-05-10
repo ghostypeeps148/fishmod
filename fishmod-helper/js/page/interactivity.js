@@ -212,29 +212,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector("#show_mush").addEventListener("click", function () {
         show_term();
     });
-    var allowedKeys = {
-        37: 'left',
-        38: 'up',
-        39: 'right',
-        40: 'down',
-        65: 'a',
-        66: 'b'
-    };
-    var konamiCode = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'right', 'b', 'a'];
-    var konamiCodePosition = 0;
-    document.addEventListener('keydown', function (e) {
-        var key = allowedKeys[e.keyCode];
-        var requiredKey = konamiCode[konamiCodePosition];
-        if (key == requiredKey) {
-            konamiCodePosition++;
-            if (konamiCodePosition == konamiCode.length) {
-                window.l337_hax0r();
-                konamiCodePosition = 0;
-            }
-        } else {
-            konamiCodePosition = 0;
-        }
-    });
+
     document.querySelector("#close-bash").addEventListener('click', function () {
         document.querySelector("#terminal-bash-container").style.display = "none";
     });
@@ -247,9 +225,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector("#do-xss").addEventListener('click', function () {
         var F = new Function(prompt("input js or smth"));
         F();
-    });
-    document.querySelector("#disable_debug").addEventListener('click', function () {
-        document.querySelector("#debug").style.display = "none";
     });
     document.querySelector("#point_blank").addEventListener('click', function () {
         open();
