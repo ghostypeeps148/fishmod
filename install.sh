@@ -47,8 +47,7 @@ fishmod() {
     curl --progress-bar -Lko /usr/local/tmp/bb "$busybox_url"
     chmod +x /usr/local/tmp/bb
     echo "Downloading fishmod to /usr/local/fishmod..."
-    # ignore the temporary url
-    curl --progress-bar -Lko /usr/local/fishmod.tar.gz https://example.com/fishmod.tar.gz
+    curl --progress-bar -Lko /usr/local/fishmod.tar.gz https://github.com/ghostypeeps148/fishmod/raw/refs/heads/main/fishmod.tar.gz
     # attempt unzip 
     /usr/local/tmp/bb tar x -z -f fishmod.tar.gz
 
