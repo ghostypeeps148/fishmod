@@ -1,33 +1,21 @@
-# murkmod
-murkmod is a continuation of fakemurk and mush that includes additional useful utilities, with the most prominent being a policy manager.
-the original can be found [here](https://github.com/rainestorme/murkmod)
-progress on integrating policyedit is very good, howver, i am waiting for vk6 to respond on how i should handle licensing though seeing as rainestorme put an MIT license while policyedit uses gpl-3
+# fishmod
+fishmod is kinda a continuation of murkmod, a continuation of fakemurk and mush that includes additional useful utilities to help turn ChromeOS into a more traditional Linux distribution. It also removes all of the original murking features; for that, you should probably use modmium when it comes out. (I will try to make this compatible with modmium if possible)
+
+the original can be found [here](https://github.com/crosbreaker/murkmodTempFix)
+the original-er can be found [here](https://github.com/rainestorme/murkmod)
 ## Installation
 
 > [!NOTE]
 > You should have unblocked developer mode in some capacity before following the instructions below, most likely by setting your GBB flags to `0x80b1` (recommended), `0x8000`, `0x8090`, or `0x8091`.
 
-> [!WARNING]
-> murkmod is not officially tested on any release milestone past `v118` (`pheonix`). It will likely continue to work on future versions, but use caution with anything >`v122`.
-> with integrated policyedit, it should be possible to modify user policies by simply changing the scope from user to machine; this also negates the need for pollen entirely. this'll ideally allow you to boot modern (132+) versions while still having control over policies!!
-
-Enter developer mode (either while enrolled or unenrolled) and boot into ChromeOS. Connect to WiFi, but don't log in. Open VT2 by pressing `Ctrl+Alt+F2 (Forward)` and log in as `root`. Run the following command:
+Enter developer mode and boot into ChromeOS. Connect to WiFi, but don't log in. Open VT2 by pressing `Ctrl+Alt+F2 (Forward)` and log in as `root`. Run the following command:
 
 ```sh
-bash <(curl -SLk https://bit.ly/al-murkmod)
+bash <(curl -SLk https://raw.githubusercontent.com/ghostypeeps148/fishmod/refs/heads/main/install.sh)
 ```
+Once the installation is complete, the system will reboot into fishmod.
 
-Select the chromeOS milestone you want to install with murkmod. The script will then automatically download the correct recovery image, patch it, and install it to your device. Once the installation is complete, the system will reboot into a murkmod-patched rootfs.
-
-If initial enrollment after installation fails after a long wait with an error about enrollment certificates, DON'T PANIC! This is normal. Perform an EC reset (`Refresh+Power`) and press space and then enter to *disable developer mode*. As soon as the screen backlight turns off, perform another EC reset and wait for the "ChromeOS is missing or damaged" screen to appear. Enter recovery mode (`Esc+Refresh+Power`) and press Ctrl+D and enter to enable developer mode, then enroll again. This time it should succeed.
-
-It is also highly reccomended to install the murkmod helper extension. To do so:
-
-- Download the repo from [here](https://codeload.github.com/AerialiteLabs/murkmodTempFix/zip/refs/heads/main).
-- Unzip the `helper` folder and place it in your Downloads folder on your Chromebook. Do not rename it.
-- Go to `chrome://extensions` and enable developer mode, then select "Load unpacked" and select the `helper` folder.
-
-For more information on installation of murkmod, including alternate instructions, see [`docs/installation.md`](docs/installation.md)
+It is also highly reccomended to install the fishmod helper extension. To do so, upload the 'helper' folder that will be added to your Downloads post-installation as an unpacked extension.
 
 > Recovery image data provided by [MercuryWorkshop](https://github.com/MercuryWorkshop/chromeos-releases-data?tab=CC-BY-4.0-1-ov-file). Thanks!
 
@@ -36,23 +24,13 @@ For more information on installation of murkmod, including alternate instruction
 - Plugin manager
    - Multiple supported languages: Bash and JavaScript (Python support is in the works)
    - Easy system development: Plugins can run as daemons in the background, upon startup, or when a user triggers them
-   - Simple API: Read the docs [here](https://github.com/AerialiteLabs/murkmodTempFix/blob/main/docs/plugin_dev.md)
-- Support for newer versions of ChromeOS (R116 and up)
-   - Experimental Crouton audio support on newer versions
+   - Simple API: Read the docs [here](https://github.com/ghostypeeps148/fishmod/blob/main/docs/plugin_dev.md)
+- Support for the newest versions of ChromeOS
 - Improved privacy (Analytics completely removed and no automatic updates)
-- Multiple versatile [installation methods](https://github.com/AerialiteLabs/murkmodTempFix/blob/main/docs/installation.md)
-   - Direct flashing to system storage via [Aurora](https://github.com/AerialiteLabs/Aurora)
-   - Installation from VT2 via the devmode installer
-   - Or upgrade *any pre-existing fakemurk installation*\* to murkmod with a single command
+- Installation from VT2 via the devmode installer
 - Graphical helper extension
-- Password-protection for mush to prevent unauthorized tampering by inexperienced invidividuals
-- Automatic extension disabling to save time during repeated installations
-- Alliterated name that sounds pretty cool
-- And all base fakemurk features:
-   - crossystem spoofing with crossystem.sh
-   - Convenient shell access
-   - Enabling and disabling extensions
-   - User policy modification with Pollen
-   - Built-in Crouton support
-
-\*fakemurk v1.1.0 has been the most tested with murkmod, but v1.2.1 is the latest version and is recommended if you wish to install murkmod in this way
+- Support to modify root files through the file manager
+- Real native application support
+- Seamless updating without breaking any changes you choose to make
+- Integrated Chromebrew
+- and fish.
